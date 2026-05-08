@@ -1,0 +1,31 @@
+# Compiled Java class files
+*.class
+
+# JavaCC generated files
+# These are generated from Parser.jj and should not be committed.
+Parser.java
+ParserConstants.java
+ParserTokenManager.java
+ParseException.java
+SimpleCharStream.java
+Token.java
+TokenMgrError.java
+
+# Test files and results
+tests/
+*.test
+test-results/
+
+# IDE configuration files
+.idea/
+*.iml
+.vscode/
+
+# Build output directories
+build/
+out/
+target/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
