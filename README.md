@@ -33,10 +33,10 @@ The LProg language demonstrates several modern programming language concepts:
 
 ### Building
 
-The project uses JavaCC to generate the parser from the `Parser.jj` grammar file. If you have a `Makefile`, you can likely build the project by running:
+The project uses JavaCC to generate the parser from the `Parser.jj` grammar file. You can build the project by running the compile shell script:
 
 ```sh
-make
+sh makeit.sh
 ```
 
 This should invoke JavaCC to generate the parser files and then `javac` to compile all the Java source files.
