@@ -10,24 +10,109 @@ public class ASTLet implements ASTNode {
   ASTNode body;
 
   public IValue eval(Environment<IValue> env) throws InterpreterError {
+    int mutCount = 0;
     if (body != null) {
       // let ... in expr;
       Environment<IValue> newEnv = env.beginScope();
 
-      for (Bind b : decls) {
-        IValue v = b.getExp().eval(newEnv);
-        newEnv.assoc(b.getId(), v);
+      try {
+        for (Bind b : decls) {
+          IValue v = b.getExp().eval(newEnv);
+          if (b.isMut()) {
+            VAddress addr = MemoryManager.getInstance().push(v);
+            newEnv.assoc(b.getId(), addr);
+            mutCount++;
+          } else {
+            newEnv.assoc(b.getId(), v);
+          }
+        }
+        return body.eval(newEnv);
+      } finally {
+        // Ensure strict LIFO deallocation for stack variables at the end of scope
+        for (int i = 0; i < mutCount; i++) {
+          MemoryManager.getInstance().pop();
+        }
       }
-
-      return body.eval(newEnv);
     } else {
       // let ...;
       for (Bind b : decls) {
         IValue v = b.getExp().eval(env);
-        env.assoc(b.getId(), v);
+        if (b.isMut()) {
+          VAddress addr = MemoryManager.getInstance().push(v);
+          env.assoc(b.getId(), addr);
+        } else {
+          env.assoc(b.getId(), v);
+        }
       }
 
       return new VUnit();
+    }
+  }
+
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    if (body != null) {
+      Environment<ASTType> newEnv = env.beginScope();
+      boolean hasMut = false;
+
+      // Pre-bind to support recursive functions statically
+      for (Bind b : decls) {
+        ASTType declaredType = b.getType();
+        ASTType prebind = declaredType != null ? declaredType : new TVar(b.getId());
+        if (b.isMut()) {
+          newEnv.assoc(b.getId(), new TMut(prebind));
+        } else {
+          newEnv.assoc(b.getId(), prebind);
+        }
+      }
+
+      for (Bind b : decls) {
+        ASTType expType = b.getExp().typecheck(newEnv);
+        ASTType declaredType = b.getType(); // Assuming Bind exposes the parsed type
+        if (declaredType != null && !expType.isSubtypeOf(declaredType)) {
+          throw new TypeError("Type mismatch in let binding for " + b.getId());
+        }
+        ASTType finalType = declaredType != null ? declaredType : expType;
+        if (b.isMut()) {
+          newEnv.assoc(b.getId(), new TMut(finalType));
+          hasMut = true;
+        } else {
+          newEnv.assoc(b.getId(), finalType);
+        }
+      }
+
+      ASTType retType = body.typecheck(newEnv);
+
+      if (hasMut && (retType instanceof TRef || retType instanceof TMut)) {
+        throw new TypeError("Memory Leak Violation: block returns a stack reference out of its scope.");
+      }
+      return retType;
+    } else {
+      // let ...; (Adds bindings directly to the current sequential scope)
+      // Pre-bind to support recursive functions statically
+      for (Bind b : decls) {
+        ASTType declaredType = b.getType();
+        ASTType prebind = declaredType != null ? declaredType : new TVar(b.getId());
+        if (b.isMut()) {
+          env.assoc(b.getId(), new TMut(prebind));
+        } else {
+          env.assoc(b.getId(), prebind);
+        }
+      }
+
+      for (Bind b : decls) {
+        ASTType expType = b.getExp().typecheck(env);
+        ASTType declaredType = b.getType();
+        if (declaredType != null && !expType.isSubtypeOf(declaredType)) {
+          throw new TypeError("Type mismatch in let binding for " + b.getId());
+        }
+        ASTType finalType = declaredType != null ? declaredType : expType;
+        if (b.isMut()) {
+          env.assoc(b.getId(), new TMut(finalType));
+        } else {
+          env.assoc(b.getId(), finalType);
+        }
+      }
+      return new TUnit();
     }
   }
 

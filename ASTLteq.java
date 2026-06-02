@@ -15,4 +15,14 @@ public class ASTLteq implements ASTNode {
     this.t1 = t1;
     this.t2 = t2;
   }
+
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    ASTType leftType = t1.typecheck(env).unfold();
+    ASTType rightType = t2.typecheck(env).unfold();
+    if ((!(leftType instanceof TInt) && !(leftType instanceof TVar)) || 
+        (!(rightType instanceof TInt) && !(rightType instanceof TVar))) {
+      throw new TypeError("Relational operator <= requires integer operands");
+    }
+    return new TBool();
+  }
 }

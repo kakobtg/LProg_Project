@@ -9,4 +9,8 @@ class ASTCell implements ASTNode {
     IValue v = expr.eval(env);
     return new VCell(v);
   }
+
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    return new TCell(expr.typecheck(env));
+  }
 }

@@ -15,6 +15,16 @@ public class ASTAnd implements ASTNode {
     }
   }
 
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    ASTType t1Type = t1.typecheck(env);
+    ASTType t2Type = t2.typecheck(env);
+    
+    if (!(t1Type instanceof TBool) || !(t2Type instanceof TBool)) {
+      throw new TypeError("illegal types to && operator");
+    }
+    return new TBool();
+  }
+
   public ASTAnd(ASTNode t1, ASTNode t2) {
     this.t1 = t1;
     this.t2 = t2;

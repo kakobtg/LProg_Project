@@ -21,6 +21,8 @@ TOKEN :
 {
   < LET : "let" >
   |
+  < MUT : "mut" >
+  |
   < IN : "in" >
   |
   < TRUE: "true" >
@@ -89,6 +91,14 @@ TOKEN :
   |
   < WHILE : "while" >
   |
+  < T_INT : "int" >
+  |
+  < T_BOOL : "bool" >
+  |
+  < T_UNIT : "unit" >
+  |
+  < AMPERSAND : "&" >
+  |
   < PRINT : "print!" >
   |
   < PRINTLN : "println!" >
@@ -111,11 +121,24 @@ ASTNode Start():
   | t = Seq() <TERM> { return t; }
 }
 
+ASTType Type() :
+{ Token t; }
+{
+    <T_INT> { return new TInt(); }
+  | <T_BOOL> { return new TBool(); }
+  | <T_UNIT> { return new TUnit(); }
+  | t=<Id> { return new TVar(t.image); } // Falls back to matching a Type Variable
+}
+
 ASTNode Let() :
 { 
   Token n; 
   ASTNode t, e1, e2, e3;
   List<Bind> decls  = new ArrayList<Bind>();;
+  boolean isMut1 = false;
+  ASTType type1 = null;
+  boolean isMut2 = false;
+  ASTType type2 = null;
 }
 {
   (
@@ -123,17 +146,24 @@ ASTNode Let() :
   |
     (
       <LET>
-      n=<Id> <EQUAL> e1 = SeqExp()
+      ( <MUT> { isMut1 = true; } )?
+      n=<Id>
+      ( <COLON> type1=Type() )?
+      <EQUAL> e1 = SeqExp()
       {
-       decls.add(new Bind(n.image, e1));
+       decls.add(new Bind(n.image, e1, isMut1, type1));
       }
 
       (
         LOOKAHEAD(3)
         ( <COMMA> | <SEMIC> )
-        n=<Id> <EQUAL> e2=SeqExp()
+        { isMut2 = false; type2 = null; }
+        ( <MUT> { isMut2 = true; } )?
+        n=<Id> 
+        ( <COLON> type2=Type() )?
+        <EQUAL> e2=SeqExp()
         {
-         decls.add(new Bind(n.image, e2));
+         decls.add(new Bind(n.image, e2, isMut2, type2));
         }
       )*
       { t = new ASTLet(decls, null); }
@@ -355,6 +385,7 @@ ASTNode Fact() :
     | <PRINTLN> t=BA() { t = new ASTPrintln(t); }
     | <WHILE> t=BA() <LBRA> body=Seq() <RBRA>  { t=new ASTWhile(t, body); }
     | <CELL> t=Fact() { t = new ASTCell(t);  }
+    | <AMPERSAND> t=Fact() { t = new ASTAlias(t); }
     | <DEREF> t=Fact() { t = new ASTDeref(t);  }
     | t = StructTuple()
     | t = Match()

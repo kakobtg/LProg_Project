@@ -10,4 +10,9 @@ class ASTSeq implements ASTNode {
     left.eval(env);
     return right.eval(env);
   }
+
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    left.typecheck(env);
+    return right.typecheck(env);
+  }
 }

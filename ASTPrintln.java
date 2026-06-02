@@ -12,4 +12,9 @@ public class ASTPrintln implements ASTNode {
   public ASTPrintln(ASTNode e) {
     this.expr = e;
   }
+
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    expr.typecheck(env);
+    return new TUnit();
+  }
 }

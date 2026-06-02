@@ -15,4 +15,17 @@ public class ASTIf implements ASTNode {
 
     return ((VBool) v).getval() ? thenBranch.eval(env) : elseBranch.eval(env);
   }
+
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    ASTType condType = cond.typecheck(env).unfold();
+    if (!(condType instanceof TBool)) {
+      throw new TypeError("If condition must evaluate to a boolean");
+    }
+    ASTType thenType = thenBranch.typecheck(env);
+    ASTType elseType = elseBranch.typecheck(env);
+    if (!thenType.isSubtypeOf(elseType) && !elseType.isSubtypeOf(thenType)) {
+      throw new TypeError("If branches must have compatible return types");
+    }
+    return thenType.isSubtypeOf(elseType) ? elseType : thenType;
+  }
 }

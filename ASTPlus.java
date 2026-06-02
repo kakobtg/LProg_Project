@@ -30,4 +30,9 @@ public class ASTPlus implements ASTNode {
     rhs = r;
   }
 
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    ASTType leftType = lhs.typecheck(env);
+    rhs.typecheck(env);
+    return leftType; // Propagate the LHS type upward
+  }
 }

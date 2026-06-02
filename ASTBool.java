@@ -8,4 +8,8 @@ class ASTBool implements ASTNode {
   public IValue eval(Environment<IValue> e) throws InterpreterError {
     return new VBool(v);
   }
+
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    return new TBool();
+  }
 }

@@ -9,4 +9,7 @@ class ASTInt implements ASTNode {
     return new VInt(v);
   }
 
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    return new TInt();
+  }
 }

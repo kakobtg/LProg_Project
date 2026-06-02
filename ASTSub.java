@@ -16,4 +16,13 @@ public class ASTSub implements ASTNode {
     rhs = r;
   }
 
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    ASTType leftType = lhs.typecheck(env).unfold();
+    ASTType rightType = rhs.typecheck(env).unfold();
+    if ((!(leftType instanceof TInt) && !(leftType instanceof TVar)) || 
+        (!(rightType instanceof TInt) && !(rightType instanceof TVar))) {
+      throw new TypeError("Subtraction requires integer operands");
+    }
+    return new TInt();
+  }
 }

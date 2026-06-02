@@ -29,4 +29,10 @@ public class ASTEq implements ASTNode {
     this.t1 = t1;
     this.t2 = t2;
   }
+
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    t1.typecheck(env);
+    t2.typecheck(env);
+    return new TBool();
+  }
 }

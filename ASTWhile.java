@@ -12,4 +12,13 @@ public class ASTWhile implements ASTNode {
     }
     return new VUnit();
   }
+
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    ASTType condType = cond.typecheck(env).unfold();
+    if (!(condType instanceof TBool)) {
+      throw new TypeError("While condition must evaluate to a boolean");
+    }
+    body.typecheck(env);
+    return new TUnit();
+  }
 }
