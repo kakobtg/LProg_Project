@@ -1,12 +1,12 @@
 # LProg Language Interpreter
 
-This project is an interpreter for a small, custom-designed programming language, referred to as "LProg". It is implemented in Java, using the JavaCC parser generator to handle lexical analysis and parsing.
+This project is an interpreter for a small, custom-designed programming language. It is implemented in Java, using the JavaCC parser generator to handle lexical analysis and parsing.
 
 The language supports a blend of functional and imperative programming paradigms and includes features for static analysis to catch certain errors before runtime.
 
 ## Features
 
-The LProg language demonstrates several modern programming language concepts:
+The programming language demonstrates several modern programming language concepts:
 
 *   **Functional Programming (Level 0):**
     *   First-class, higher-order functions.
@@ -14,15 +14,18 @@ The LProg language demonstrates several modern programming language concepts:
     *   Currying (partial application).
     *   Recursion.
 *   **Imperative Programming (Level 1):**
-    *   Mutable state via `cell`s.
+    *   Heap-allocated mutable state via `cell`s.
+    *   Stack-allocated mutable variables via `mut`, featuring implicit dereferencing.
     *   Dereferencing (`!`) and assignment (`:=`).
     *   `while` loops.
 *   **Data Structures (Level 2):**
     *   Custom struct-like tuples (e.g., `#Add(left, right)`).
     *   Pattern matching with `match`.
+    *   Equi-recursive types (e.g., recursive lists or trees) evaluated via structural subtyping.
 *   **Safety Features:**
     *   **Static Cycle Detection:** The interpreter performs a static analysis check on `let` bindings to detect and prevent unsafe mutual recursion that is not shielded by a function abstraction.
-    *   **Runtime Type Safety:** The language is strictly typed at runtime, and operations that violate type rules will cause the interpreter to crash with an error.
+    *   **Static Type Checking:** A pre-execution analysis pass (`typecheck`) rigorously verifies type safety before any code is run.
+    *   **Memory Leak Prevention:** The static analyzer performs escape analysis to prevent dangling pointers, halting execution if local stack references attempt to escape their scope.
 
 ## How to Build and Run
 
@@ -102,3 +105,8 @@ The `demos/` directory contains several files that showcase the language's featu
 *   **Concept:** This demo will **not** type-check. It demonstrates leak prevention (Challenge 3).
 *   **Run:** `java R0int < demos/demo10_alias_leak_ko.rs`
 *   **See:** The static analyzer rejecting escaping stack-allocated references.
+
+### `rustytestsv2` (or `sample.rs`)
+*   **Concept:** A comprehensive test suite provided by the professor. It tests all aspects of the interpreter together, including Church encoding, recursive structures (Lists and Nats), stack vs. heap allocations, and memory leak prevention.
+*   **Run:** `java R0int rustytestsv2` (if located in your root directory)
+*   **See:** The correct sequential evaluation of nested loops, list pattern matching, and full language feature compliance.

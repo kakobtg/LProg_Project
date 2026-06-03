@@ -13,4 +13,12 @@ public class ASTNot implements ASTNode {
   public ASTNot(ASTNode e) {
     exp = e;
   }
+
+  public ASTType typecheck(Environment<ASTType> env) throws TypeError {
+    ASTType expType = exp.typecheck(env).unfold();
+    if (!(expType instanceof TBool) && !(expType instanceof TVar)) {
+      throw new TypeError("NOT operator ~ requires a boolean operand");
+    }
+    return new TBool();
+  }
 }

@@ -379,8 +379,8 @@ ASTNode Fact() :
     | t = Function()
     | <IF> t=BA() <LBRA> e1=Seq() <RBRA> <ELSE> <LBRA> e2=Seq() <RBRA>
         { t = new ASTIf(t, e1, e2); }
-    | <LPAR> t=Seq() <RPAR> 
-    | <LBRA> t=Seq() <RBRA>
+    | <LPAR> t=Seq() <RPAR>
+    | <LBRA> t=Seq() <RBRA> { t = new ASTLet(new ArrayList<Bind>(), t); }
     | <PRINT> t=BA() { t = new ASTPrint(t); }
     | <PRINTLN> t=BA() { t = new ASTPrintln(t); }
     | <WHILE> t=BA() <LBRA> body=Seq() <RBRA>  { t=new ASTWhile(t, body); }

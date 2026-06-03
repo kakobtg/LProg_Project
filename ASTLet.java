@@ -82,7 +82,8 @@ public class ASTLet implements ASTNode {
 
       ASTType retType = body.typecheck(newEnv);
 
-      if (hasMut && (retType instanceof TRef || retType instanceof TMut)) {
+      boolean bodyHasMut = containsMutDecl(body);
+      if ((hasMut || bodyHasMut) && (retType instanceof TRef || retType instanceof TMut)) {
         throw new TypeError("Memory Leak Violation: block returns a stack reference out of its scope.");
       }
       return retType;
@@ -198,5 +199,34 @@ public class ASTLet implements ASTNode {
         }
       }
     } catch (Exception e) {}
+  }
+
+  private boolean containsMutDecl(ASTNode node) {
+    if (node == null) return false;
+
+    if (node instanceof ASTLet) {
+      ASTLet letNode = (ASTLet) node;
+      for (Bind b : letNode.decls) {
+        if (b.isMut()) return true;
+      }
+    }
+
+    // Recursively search all structural AST children
+    try {
+      for (Field f : node.getClass().getDeclaredFields()) {
+        f.setAccessible(true);
+        Object val = f.get(node);
+        if (val instanceof ASTNode) {
+          if (containsMutDecl((ASTNode) val)) return true;
+        } else if (val instanceof Iterable) {
+          for (Object elem : (Iterable<?>) val) {
+            if (elem instanceof ASTNode) {
+              if (containsMutDecl((ASTNode) elem)) return true;
+            }
+          }
+        }
+      }
+    } catch (Exception e) {}
+    return false;
   }
 }
